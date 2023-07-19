@@ -37,13 +37,19 @@ mrb_spi_init(mrb_state *mrb, mrb_value self) {
   spi_t *spi = mrb_malloc(mrb, sizeof(spi_t));
 
   mrb_int id;
-  mrb_sym kname = MRB_SYM(unit);
-  mrb_value u;
-  const mrb_kwargs kw = {1, 0, &kname, &u, NULL};
-  mrb_get_args(mrb, "|i?:", &id, &kw);
+  mrb_bool given;
+  mrb_sym knames[4] = { MRB_SYM(unit), MRB_SYM(mode), MRB_SYM(first_bit), MRB_SYM(frequency) };
+  mrb_value kvalues[4] = { 0 };
+  const mrb_kwargs kw = { 4, 0, knames, kvalues, NULL };
+  mrb_get_args(mrb, "|i?:", &id, &given, &kw);
+
+  if (!given) {
+    ESP_LOGI(TAG, "initialize()");
+  } else {
+    ESP_LOGI(TAG, "initialize(%d)", id);
+  }
 
   mrb_data_init(self, spi, &mrb_spi);
-  ESP_LOGI(TAG, "initialize(%d)", id);
 
   return self;
 }
@@ -52,7 +58,7 @@ void
 mrb_mruby_esp32_spi_gem_init(mrb_state* mrb) {
   struct RClass *client_class = mrb_define_class(mrb, "SPI", mrb->object_class);
 
-  mrb_define_method(mrb, client_class, "initialize", mrb_spi_init, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, client_class, "initialize", mrb_spi_init, MRB_ARGS_ANY());
 }
 
 void
